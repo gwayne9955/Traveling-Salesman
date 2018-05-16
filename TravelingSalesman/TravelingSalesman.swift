@@ -71,7 +71,7 @@ func cost(matrix: inout [[Double]], len: Int, fromIndex: Int, toIndex: Int, city
         cityIndexSet.remove(index)
         temp = matrix[fromIndex][index] + cost(matrix: &matrix, len: len, fromIndex: index, toIndex: toIndex, cityIndexSet: &cityIndexSet, table: &table)
         if cityIndexSet.count == len - 2 {
-            var array = [index]
+            var array = [index] // problem here, debug when temp is the lowest, set is not in right order
             array.append(contentsOf: cityIndexSet)
             if table[temp] == nil {
                 table[temp] = array
