@@ -8,13 +8,13 @@
 
 import Foundation
 
-func findShortestRoute(cities: [City]) -> [City] { // handle cases with 1 city and 2 cities
+func findShortestRoute(cities: [City]) -> [City] {
     var answer = [City]()
     let len = cities.count
     var shortestDistance = 0.0
     let indexOfStartingCity = 0
     var table = [Double: [Int]]()
-    var cityIndexSet = Set<Int>(indexOfStartingCity...len - 1)
+    var cityIndexSet = Set<Int>(0...len - 1)
     
     var distMatrix: [[Double]] = Array(repeating: Array(repeating: 0, count: len), count: len)
     generateDistMatrix(matrix: &distMatrix, len: len, cities: cities, citySet: &cityIndexSet)
@@ -22,14 +22,18 @@ func findShortestRoute(cities: [City]) -> [City] { // handle cases with 1 city a
     cityIndexSet.remove(indexOfStartingCity)
     answer.append(cities[indexOfStartingCity])
     
-    shortestDistance = cost(matrix: &distMatrix, len: len, fromIndex: indexOfStartingCity, cities: cities, toIndex: indexOfStartingCity, cityIndexSet: &cityIndexSet, answer: &answer, table: &table)
-    print("Shortest Distance is \(shortestDistance)")
-    
-    //print(table[shortestDistance])
-    
-    for index in table[shortestDistance]! {
-        answer.append(cities[index])
+    if len == 2 {
+        answer.append(cities[cityIndexSet.first!])
+        shortestDistance = 2 * distMatrix[indexOfStartingCity][cityIndexSet.first!]
     }
+    
+    else if len > 2 {
+        shortestDistance = cost(matrix: &distMatrix, len: len, fromIndex: indexOfStartingCity, toIndex: indexOfStartingCity, cityIndexSet: &cityIndexSet, table: &table)
+        for index in table[shortestDistance]! {
+            answer.append(cities[index])
+        }
+    }
+    print("Shortest Distance is \(shortestDistance)")
     
     answer.append(cities[indexOfStartingCity])
     
@@ -56,7 +60,7 @@ func getDistanceBetweenCities(c1: City, c2: City) -> Double {
     return dist
 }
 
-func cost(matrix: inout [[Double]], len: Int, fromIndex: Int, cities: [City], toIndex: Int, cityIndexSet: inout Set<Int>, answer: inout [City], table: inout [Double: [Int]]) -> Double {
+func cost(matrix: inout [[Double]], len: Int, fromIndex: Int, toIndex: Int, cityIndexSet: inout Set<Int>, table: inout [Double: [Int]]) -> Double {
     if cityIndexSet.isEmpty {
         return matrix[fromIndex][toIndex]
     }
@@ -65,15 +69,13 @@ func cost(matrix: inout [[Double]], len: Int, fromIndex: Int, cities: [City], to
     for index in cityIndexSet {
         var temp = 0.0
         cityIndexSet.remove(index)
-        temp = matrix[fromIndex][index] + cost(matrix: &matrix, len: len, fromIndex: index, cities: cities, toIndex: toIndex, cityIndexSet: &cityIndexSet, answer: &answer, table: &table)
+        temp = matrix[fromIndex][index] + cost(matrix: &matrix, len: len, fromIndex: index, toIndex: toIndex, cityIndexSet: &cityIndexSet, table: &table)
         if cityIndexSet.count == len - 2 {
             var array = [index]
             array.append(contentsOf: cityIndexSet)
             if table[temp] == nil {
                 table[temp] = array
             }
-//            print(array)
-//            print(temp)
         }
         cityIndexSet.insert(index)
         if temp < dist {
@@ -81,14 +83,11 @@ func cost(matrix: inout [[Double]], len: Int, fromIndex: Int, cities: [City], to
         }
     }
     
-//    if dist < currentDistance {
-//        currentDistance = dist
-//    } Works with this commented out, at least it gets the right shortest distance
-    
     return dist
 }
 
 func printCities(cities: [City]) {
+    print("Shortest Round Trip to All Cities is:")
     for city in cities {
         print(city.name + ", ")
     }
